@@ -15,6 +15,7 @@ class WastePickup:
 
     date: date
     waste_type: str
+    waste_type_name: str
     waste_type_id: str
     frequency_type: int
     frequency_interval: int
