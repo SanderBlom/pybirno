@@ -16,6 +16,9 @@ API_PROVIDER_ID: Final = "100;300;400"
 
 API_TIMEOUT: Final = 30
 
+# HTTP status code that BIR returns for expired/invalid tokens.
+HTTP_SERVER_ERROR: Final = 500
+
 # Mapping from Norwegian waste type names (from API) to English keys.
 WASTE_TYPE_MAP: Final[dict[str, str]] = {
     "Restavfall": "mixed_waste",
