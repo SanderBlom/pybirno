@@ -120,9 +120,7 @@ class BirClient:
                 raise BirResponseError(
                     f"Server error fetching pickups for property {self._property_id}"
                 ) from err
-            raise BirConnectionError(
-                f"Error fetching pickups: {err}"
-            ) from err
+            raise BirConnectionError(f"Error fetching pickups: {err}") from err
         except ClientError as err:
             raise BirConnectionError(
                 f"Connection error fetching pickups: {err}"
@@ -166,9 +164,7 @@ class BirClient:
         return sorted(pickups, key=lambda p: p.date)
 
     @staticmethod
-    async def search_addresses(
-        session: ClientSession, query: str
-    ) -> list[Address]:
+    async def search_addresses(session: ClientSession, query: str) -> list[Address]:
         """Search for addresses in the BIR service area.
 
         Uses the BIR website search API which covers all municipalities
@@ -195,9 +191,7 @@ class BirClient:
                 response.raise_for_status()
                 results: list[dict[str, Any]] = await response.json()
         except ClientError as err:
-            raise BirConnectionError(
-                f"Error searching addresses: {err}"
-            ) from err
+            raise BirConnectionError(f"Error searching addresses: {err}") from err
 
         return [
             Address(
