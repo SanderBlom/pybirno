@@ -11,7 +11,3 @@ class BirConnectionError(BirError):
 
 class BirAuthenticationError(BirError):
     """Raised when authentication with the BIR API fails."""
-
-
-class BirResponseError(BirError):
-    """Raised when the BIR API returns an unexpected response."""
