@@ -24,3 +24,8 @@ async def main():
 
 asyncio.run(main())
 ```
+
+## API Documentation
+
+The BIR API Swagger docs are available at:
+https://webservice.bir.no/swagger/docs/v1
