@@ -16,7 +16,9 @@ API_PROVIDER_ID: Final = "100;300;400"
 
 API_TIMEOUT: Final = 30
 
-# HTTP status code that BIR returns for expired/invalid tokens.
+# HTTP status codes for authentication-related errors.
+HTTP_UNAUTHORIZED: Final = 401
+HTTP_FORBIDDEN: Final = 403
 HTTP_SERVER_ERROR: Final = 500
 
 # Mapping from Norwegian waste type names (from API) to English keys.
