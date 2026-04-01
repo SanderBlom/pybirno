@@ -117,10 +117,12 @@ class TestGetPickups:
         assert len(pickups) == 2
         # Should be sorted by date
         assert pickups[0].date == date(2026, 4, 10)
-        assert pickups[0].waste_type == "Matavfall"
+        assert pickups[0].waste_type == "food_waste"
+        assert pickups[0].waste_type_name == "Matavfall"
         assert pickups[0].waste_type_id == "3"
         assert pickups[1].date == date(2026, 4, 15)
-        assert pickups[1].waste_type == "Restavfall"
+        assert pickups[1].waste_type == "mixed_waste"
+        assert pickups[1].waste_type_name == "Restavfall"
 
     async def test_get_pickups_auth_error(self, session: AsyncMock) -> None:
         """Test get_pickups raises on auth failure."""
@@ -174,7 +176,8 @@ class TestGetPickups:
         pickups = await client.get_pickups()
 
         assert len(pickups) == 1
-        assert pickups[0].waste_type == "Papir"
+        assert pickups[0].waste_type == "paper_and_plastic"
+        assert pickups[0].waste_type_name == "Papir"
 
 
 class TestSearchAddresses:
@@ -280,6 +283,7 @@ class TestParsePickups:
         result = BirClient._parse_pickups(data)
         assert len(result) == 1
         assert result[0].waste_type == ""
+        assert result[0].waste_type_name == ""
         assert result[0].waste_type_id == ""
         assert result[0].frequency_type == 0
         assert result[0].frequency_interval == 0
@@ -288,7 +292,8 @@ class TestParsePickups:
         """Test that WastePickup is immutable."""
         pickup = WastePickup(
             date=date(2026, 4, 15),
-            waste_type="Restavfall",
+            waste_type="mixed_waste",
+            waste_type_name="Restavfall",
             waste_type_id="1",
             frequency_type=2,
             frequency_interval=2,

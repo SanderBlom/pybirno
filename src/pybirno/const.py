@@ -15,3 +15,11 @@ API_APP_ID: Final = "94FA72AD-583D-4AA3-988F-491F694DFB7B"
 API_PROVIDER_ID: Final = "100;300;400"
 
 API_TIMEOUT: Final = 30
+
+# Mapping from Norwegian waste type names (from API) to English keys.
+WASTE_TYPE_MAP: Final[dict[str, str]] = {
+    "Restavfall": "mixed_waste",
+    "Papir": "paper_and_plastic",
+    "Matavfall": "food_waste",
+    "Glass og metallemballasje": "glass_and_metal_packaging",
+}

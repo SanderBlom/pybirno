@@ -14,6 +14,7 @@ from .const import (
     API_PICKUPS_URL,
     API_PROVIDER_ID,
     API_TIMEOUT,
+    WASTE_TYPE_MAP,
 )
 from .exceptions import (
     BirAuthenticationError,
@@ -149,10 +150,12 @@ class BirClient:
             try:
                 dato = item["dato"].split("T")[0]
                 pickup_date = date.fromisoformat(dato)
+                waste_type_name = item.get("fraksjon", "")
                 pickups.append(
                     WastePickup(
                         date=pickup_date,
-                        waste_type=item.get("fraksjon", ""),
+                        waste_type=WASTE_TYPE_MAP.get(waste_type_name, waste_type_name),
+                        waste_type_name=waste_type_name,
                         waste_type_id=item.get("fraksjonId", ""),
                         frequency_type=item.get("frekvensType", 0),
                         frequency_interval=item.get("frekvensIntervall", 0),
