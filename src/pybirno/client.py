@@ -157,6 +157,9 @@ class BirClient:
             raise BirConnectionError(
                 f"Connection error fetching pickups: {err}"
             ) from err
+        except ValueError as err:
+            _LOGGER.debug("Invalid JSON in pickups response: %s", err)
+            raise BirConnectionError(f"Invalid response from BIR API: {err}") from err
 
         return self._parse_pickups(data)
 
@@ -234,6 +237,9 @@ class BirClient:
         except ClientError as err:
             _LOGGER.debug("Error searching addresses: %s", err)
             raise BirConnectionError(f"Error searching addresses: {err}") from err
+        except ValueError as err:
+            _LOGGER.debug("Invalid JSON in address search response: %s", err)
+            raise BirConnectionError(f"Invalid response from BIR API: {err}") from err
 
         _LOGGER.debug(
             "Address search for '%s' returned %d results", query, len(results)
