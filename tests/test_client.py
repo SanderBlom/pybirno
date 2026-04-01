@@ -125,19 +125,21 @@ class TestGetPickups:
         assert pickups[1].waste_type_name == "Restavfall"
 
     async def test_get_pickups_auth_error(self, session: AsyncMock) -> None:
-        """Test get_pickups raises on auth failure after retry."""
-        session.post.return_value = _make_response(headers={"Token": "test-token"})
-        session.get.return_value = _make_response(status=401)
+        """Test get_pickups raises immediately when initial auth fails."""
+        session.post.return_value = _make_response(status=401)
 
         client = BirClient("prop-id", session)
         with pytest.raises(BirAuthenticationError):
             await client.get_pickups()
 
-        # Should have tried to re-authenticate (initial auth + retry)
-        assert session.post.call_count == 2
+        # Should only attempt auth once, no retry
+        assert session.post.call_count == 1
+        # Should never reach the API call
+        session.get.assert_not_called()
 
     async def test_get_pickups_reauth_on_expired_token(
-        self, session: AsyncMock
+        self,
+        session: AsyncMock,
     ) -> None:
         """Test get_pickups re-authenticates on expired token and retries."""
         session.post.return_value = _make_response(headers={"Token": "new-token"})
@@ -163,6 +165,21 @@ class TestGetPickups:
         assert len(pickups) == 1
         assert pickups[0].waste_type == "mixed_waste"
         # Initial auth + re-auth
+        assert session.post.call_count == 2
+
+    async def test_get_pickups_reauth_fails(self, session: AsyncMock) -> None:
+        """Test get_pickups raises when re-auth after token expiry also fails."""
+        # First auth succeeds, re-auth fails
+        session.post.side_effect = [
+            _make_response(headers={"Token": "old-token"}),
+            _make_response(status=401),
+        ]
+        session.get.return_value = _make_response(status=401)
+
+        client = BirClient("prop-id", session)
+        with pytest.raises(BirAuthenticationError):
+            await client.get_pickups()
+
         assert session.post.call_count == 2
 
     async def test_get_pickups_server_error(self, session: AsyncMock) -> None:

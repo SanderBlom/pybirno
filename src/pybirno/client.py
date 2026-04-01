@@ -82,7 +82,7 @@ class BirClient:
     async def get_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
         """Fetch upcoming waste pickups for the property.
 
-        Automatically re-authenticates once if the token has expired.
+        Automatically re-authenticates once if the API rejects the token.
 
         Args:
             days_ahead: Number of days to look ahead. Defaults to 95.
@@ -91,11 +91,12 @@ class BirClient:
             List of scheduled waste pickups, sorted by date.
 
         Raises:
-            BirAuthenticationError: If authentication fails after retry.
+            BirAuthenticationError: If authentication fails.
             BirConnectionError: If a connection error occurs.
             BirResponseError: If the API returns unexpected data.
 
         """
+        await self._ensure_authenticated()
         try:
             return await self._fetch_pickups(days_ahead)
         except BirAuthenticationError:
@@ -118,8 +119,6 @@ class BirClient:
             BirResponseError: If the API returns unexpected data.
 
         """
-        await self._ensure_authenticated()
-
         now = datetime.now(tz=UTC)
         params = {
             "eiendomId": self._property_id,
