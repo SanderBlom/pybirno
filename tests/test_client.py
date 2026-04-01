@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiohttp import ClientResponseError, ClientSession, RequestInfo
@@ -59,9 +59,7 @@ class TestAuthenticate:
 
     async def test_successful_auth(self, session: AsyncMock) -> None:
         """Test successful authentication returns token."""
-        session.post.return_value = _make_response(
-            headers={"Token": "test-token-123"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "test-token-123"})
 
         client = BirClient("prop-id", session)
         await client.authenticate()
@@ -92,9 +90,7 @@ class TestGetPickups:
     async def test_get_pickups_success(self, session: AsyncMock) -> None:
         """Test fetching pickups returns parsed data."""
         # Mock login
-        session.post.return_value = _make_response(
-            headers={"Token": "test-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
         # Mock pickups
         session.get.return_value = _make_response(
             json_data=[
@@ -128,9 +124,7 @@ class TestGetPickups:
 
     async def test_get_pickups_auth_error(self, session: AsyncMock) -> None:
         """Test get_pickups raises on auth failure."""
-        session.post.return_value = _make_response(
-            headers={"Token": "test-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
         session.get.return_value = _make_response(status=401)
 
         client = BirClient("prop-id", session)
@@ -139,22 +133,16 @@ class TestGetPickups:
 
     async def test_get_pickups_server_error(self, session: AsyncMock) -> None:
         """Test get_pickups raises BirResponseError on 500."""
-        session.post.return_value = _make_response(
-            headers={"Token": "test-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
         session.get.return_value = _make_response(status=500)
 
         client = BirClient("prop-id", session)
         with pytest.raises(BirResponseError):
             await client.get_pickups()
 
-    async def test_get_pickups_auto_authenticates(
-        self, session: AsyncMock
-    ) -> None:
+    async def test_get_pickups_auto_authenticates(self, session: AsyncMock) -> None:
         """Test get_pickups authenticates automatically if no token."""
-        session.post.return_value = _make_response(
-            headers={"Token": "auto-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "auto-token"})
         session.get.return_value = _make_response(json_data=[])
 
         client = BirClient("prop-id", session)
@@ -168,9 +156,7 @@ class TestGetPickups:
 
     async def test_get_pickups_skips_malformed(self, session: AsyncMock) -> None:
         """Test that malformed entries are skipped."""
-        session.post.return_value = _make_response(
-            headers={"Token": "test-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
         session.get.return_value = _make_response(
             json_data=[
                 {"dato": "invalid-date", "fraksjon": "Restavfall"},
@@ -224,9 +210,7 @@ class TestSearchAddresses:
         )
         assert results[1].property_id == "def-456"
 
-    async def test_search_skips_entries_without_id(
-        self, session: AsyncMock
-    ) -> None:
+    async def test_search_skips_entries_without_id(self, session: AsyncMock) -> None:
         """Test that entries without an Id are filtered out."""
         session.get.return_value = _make_response(
             json_data=[
@@ -253,9 +237,7 @@ class TestValidate:
 
     async def test_validate_success(self, session: AsyncMock) -> None:
         """Test validate returns True on success."""
-        session.post.return_value = _make_response(
-            headers={"Token": "valid-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "valid-token"})
 
         client = BirClient("prop-id", session)
         result = await client.validate()
