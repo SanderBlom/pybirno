@@ -15,7 +15,9 @@ from .const import (
     API_PICKUPS_URL,
     API_PROVIDER_ID,
     API_TIMEOUT,
+    HTTP_FORBIDDEN,
     HTTP_SERVER_ERROR,
+    HTTP_UNAUTHORIZED,
     WASTE_TYPE_MAP,
 )
 from .exceptions import (
@@ -140,7 +142,7 @@ class BirClient:
             async with self._session.get(
                 API_PICKUPS_URL, headers=headers, params=params, timeout=timeout
             ) as response:
-                if response.status in (401, 403):
+                if response.status in (HTTP_UNAUTHORIZED, HTTP_FORBIDDEN):
                     raise BirAuthenticationError("Token expired or invalid")
                 if response.status == HTTP_SERVER_ERROR:
                     # The BIR API returns 500 for expired/invalid tokens
