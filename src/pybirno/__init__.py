@@ -5,7 +5,6 @@ from .exceptions import (
     BirAuthenticationError,
     BirConnectionError,
     BirError,
-    BirResponseError,
 )
 from .models import Address, WastePickup
 
@@ -15,6 +14,5 @@ __all__ = [
     "BirClient",
     "BirConnectionError",
     "BirError",
-    "BirResponseError",
     "WastePickup",
 ]

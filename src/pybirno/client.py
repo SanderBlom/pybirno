@@ -83,6 +83,9 @@ class BirClient:
             raise BirConnectionError(
                 f"Connection error during authentication: {err}"
             ) from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout during authentication")
+            raise BirConnectionError("Timeout during authentication") from err
 
     async def get_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
         """Fetch upcoming waste pickups for the property.
@@ -98,7 +101,6 @@ class BirClient:
         Raises:
             BirAuthenticationError: If authentication fails.
             BirConnectionError: If a connection error occurs.
-            BirResponseError: If the API returns unexpected data.
 
         """
         await self._ensure_authenticated()
@@ -122,7 +124,6 @@ class BirClient:
         Raises:
             BirAuthenticationError: If the token is invalid or expired.
             BirConnectionError: If a connection error occurs.
-            BirResponseError: If the API returns unexpected data.
 
         """
         now = datetime.now(tz=UTC)
@@ -157,6 +158,9 @@ class BirClient:
             raise BirConnectionError(
                 f"Connection error fetching pickups: {err}"
             ) from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout fetching pickups")
+            raise BirConnectionError("Timeout fetching pickups") from err
         except ValueError as err:
             _LOGGER.debug("Invalid JSON in pickups response: %s", err)
             raise BirConnectionError(f"Invalid response from BIR API: {err}") from err
@@ -237,6 +241,9 @@ class BirClient:
         except ClientError as err:
             _LOGGER.debug("Error searching addresses: %s", err)
             raise BirConnectionError(f"Error searching addresses: {err}") from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout searching addresses")
+            raise BirConnectionError("Timeout searching addresses") from err
         except ValueError as err:
             _LOGGER.debug("Invalid JSON in address search response: %s", err)
             raise BirConnectionError(f"Invalid response from BIR API: {err}") from err

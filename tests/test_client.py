@@ -258,15 +258,15 @@ class TestGetPickups:
         session.get.side_effect = TimeoutError("Request timed out")
 
         client = BirClient("prop-id", session)
-        with pytest.raises(TimeoutError):
+        with pytest.raises(BirConnectionError, match="Timeout"):
             await client.get_pickups()
 
     async def test_authenticate_timeout(self, session: AsyncMock) -> None:
-        """Test authenticate raises on timeout."""
+        """Test authenticate raises BirConnectionError on timeout."""
         session.post.side_effect = TimeoutError("Request timed out")
 
         client = BirClient("prop-id", session)
-        with pytest.raises(TimeoutError):
+        with pytest.raises(BirConnectionError, match="Timeout"):
             await client.authenticate()
 
     async def test_get_pickups_invalid_json(self, session: AsyncMock) -> None:
