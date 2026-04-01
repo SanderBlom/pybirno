@@ -125,13 +125,47 @@ class TestGetPickups:
         assert pickups[1].waste_type_name == "Restavfall"
 
     async def test_get_pickups_auth_error(self, session: AsyncMock) -> None:
-        """Test get_pickups raises on auth failure."""
+        """Test get_pickups raises on auth failure after retry."""
         session.post.return_value = _make_response(headers={"Token": "test-token"})
         session.get.return_value = _make_response(status=401)
 
         client = BirClient("prop-id", session)
         with pytest.raises(BirAuthenticationError):
             await client.get_pickups()
+
+        # Should have tried to re-authenticate (initial auth + retry)
+        assert session.post.call_count == 2
+
+    async def test_get_pickups_reauth_on_expired_token(
+        self, session: AsyncMock
+    ) -> None:
+        """Test get_pickups re-authenticates on expired token and retries."""
+        session.post.return_value = _make_response(
+            headers={"Token": "new-token"}
+        )
+        # First call returns 401, second call succeeds
+        session.get.side_effect = [
+            _make_response(status=401),
+            _make_response(
+                json_data=[
+                    {
+                        "dato": "2026-04-15T00:00:00",
+                        "fraksjon": "Restavfall",
+                        "fraksjonId": "1",
+                        "frekvensType": 2,
+                        "frekvensIntervall": 2,
+                    },
+                ]
+            ),
+        ]
+
+        client = BirClient("prop-id", session)
+        pickups = await client.get_pickups()
+
+        assert len(pickups) == 1
+        assert pickups[0].waste_type == "mixed_waste"
+        # Initial auth + re-auth
+        assert session.post.call_count == 2
 
     async def test_get_pickups_server_error(self, session: AsyncMock) -> None:
         """Test get_pickups raises BirResponseError on 500."""
