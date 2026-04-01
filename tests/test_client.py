@@ -260,33 +260,50 @@ class TestParsePickups:
         data = [
             {
                 "dato": "2026-04-20T00:00:00",
-                "fraksjon": "B",
-                "fraksjonId": "2",
+                "fraksjon": "Restavfall",
+                "fraksjonId": "1",
                 "frekvensType": 2,
                 "frekvensIntervall": 2,
             },
             {
                 "dato": "2026-04-05T00:00:00",
-                "fraksjon": "A",
-                "fraksjonId": "1",
+                "fraksjon": "Matavfall",
+                "fraksjonId": "3",
                 "frekvensType": 2,
                 "frekvensIntervall": 1,
             },
         ]
         result = BirClient._parse_pickups(data)
-        assert result[0].waste_type == "A"
-        assert result[1].waste_type == "B"
+        assert result[0].waste_type == "food_waste"
+        assert result[1].waste_type == "mixed_waste"
 
-    def test_missing_optional_fields(self) -> None:
-        """Test parsing with missing optional fields uses defaults."""
+    def test_missing_fraksjon_skipped(self) -> None:
+        """Test that entries without fraksjon are skipped."""
         data = [{"dato": "2026-04-15T00:00:00"}]
         result = BirClient._parse_pickups(data)
+        assert result == []
+
+    def test_unknown_waste_type_skipped(self) -> None:
+        """Test that unknown waste types are silently skipped."""
+        data = [
+            {
+                "dato": "2026-04-10T00:00:00",
+                "fraksjon": "Matavfall",
+                "fraksjonId": "3",
+                "frekvensType": 0,
+                "frekvensIntervall": 0,
+            },
+            {
+                "dato": "2026-04-15T00:00:00",
+                "fraksjon": "Ukjent Type",
+                "fraksjonId": "99",
+                "frekvensType": 0,
+                "frekvensIntervall": 0,
+            },
+        ]
+        result = BirClient._parse_pickups(data)
         assert len(result) == 1
-        assert result[0].waste_type == ""
-        assert result[0].waste_type_name == ""
-        assert result[0].waste_type_id == ""
-        assert result[0].frequency_type == 0
-        assert result[0].frequency_interval == 0
+        assert result[0].waste_type == "food_waste"
 
     def test_frozen_dataclass(self) -> None:
         """Test that WastePickup is immutable."""
