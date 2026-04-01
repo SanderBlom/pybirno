@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/pybirno)](https://pypi.org/project/pybirno/)
 [![License](https://img.shields.io/github/license/SanderBlom/pybirno)](https://github.com/SanderBlom/pybirno/blob/main/LICENSE)
 
-Async Python client for the BIR waste collection API (Bergen, Norway).
+Async Python client for the [BIR](https://bir.no) waste collection API. BIR handles garbage collection in the Bergen region of Norway. This library wraps a small part of their API (address lookup, auth, and pickup schedules) and was made to power the Home Assistant BIR integration.
 
 ## Installation
 
@@ -32,5 +32,4 @@ asyncio.run(main())
 
 ## API Documentation
 
-The BIR API Swagger docs are available at:
-https://webservice.bir.no/swagger/docs/v1
+- API spec: https://webservice.bir.no/swagger/docs/v1
