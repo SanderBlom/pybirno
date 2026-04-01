@@ -71,6 +71,10 @@ warn_unused_configs = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "integration: tests that call the real BIR API (deselect with '-m \"not integration\"')",
+]
+addopts = "-m 'not integration'"
 
 [tool.bandit]
 exclude_dirs = ["tests"]

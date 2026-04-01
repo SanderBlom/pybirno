@@ -20,7 +20,6 @@ from .exceptions import (
     BirAuthenticationError,
     BirConnectionError,
     BirError,
-    BirResponseError,
 )
 from .models import Address, WastePickup
 
@@ -82,8 +81,33 @@ class BirClient:
     async def get_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
         """Fetch upcoming waste pickups for the property.
 
+        Automatically re-authenticates once if the API rejects the token.
+
         Args:
             days_ahead: Number of days to look ahead. Defaults to 95.
+
+        Returns:
+            List of scheduled waste pickups, sorted by date.
+
+        Raises:
+            BirAuthenticationError: If authentication fails.
+            BirConnectionError: If a connection error occurs.
+            BirResponseError: If the API returns unexpected data.
+
+        """
+        await self._ensure_authenticated()
+        try:
+            return await self._fetch_pickups(days_ahead)
+        except BirAuthenticationError:
+            self._token = None
+            await self.authenticate()
+            return await self._fetch_pickups(days_ahead)
+
+    async def _fetch_pickups(self, days_ahead: int) -> list[WastePickup]:
+        """Fetch pickups from the API without retry logic.
+
+        Args:
+            days_ahead: Number of days to look ahead.
 
         Returns:
             List of scheduled waste pickups, sorted by date.
@@ -94,8 +118,6 @@ class BirClient:
             BirResponseError: If the API returns unexpected data.
 
         """
-        await self._ensure_authenticated()
-
         now = datetime.now(tz=UTC)
         params = {
             "eiendomId": self._property_id,
@@ -111,16 +133,16 @@ class BirClient:
             ) as response:
                 if response.status in (401, 403):
                     raise BirAuthenticationError("Token expired or invalid")
+                server_error_status = 500
+                if response.status == server_error_status:
+                    # The BIR API returns 500 for expired/invalid tokens
+                    # rather than a proper 401/403.
+                    raise BirAuthenticationError("Server error (likely expired token)")
                 response.raise_for_status()
                 data: list[dict[str, Any]] = await response.json()
         except BirError:
             raise
         except ClientResponseError as err:
-            server_error = 500
-            if err.status == server_error:
-                raise BirResponseError(
-                    f"Server error fetching pickups for property {self._property_id}"
-                ) from err
             raise BirConnectionError(f"Error fetching pickups: {err}") from err
         except ClientError as err:
             raise BirConnectionError(
