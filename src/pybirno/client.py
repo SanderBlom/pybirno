@@ -161,6 +161,9 @@ class BirClient:
         except TimeoutError as err:
             _LOGGER.debug("Timeout fetching pickups")
             raise BirConnectionError("Timeout fetching pickups") from err
+        except ValueError as err:
+            _LOGGER.debug("Invalid JSON in pickups response: %s", err)
+            raise BirConnectionError(f"Invalid response from BIR API: {err}") from err
 
         return self._parse_pickups(data)
 
@@ -241,6 +244,9 @@ class BirClient:
         except TimeoutError as err:
             _LOGGER.debug("Timeout searching addresses")
             raise BirConnectionError("Timeout searching addresses") from err
+        except ValueError as err:
+            _LOGGER.debug("Invalid JSON in address search response: %s", err)
+            raise BirConnectionError(f"Invalid response from BIR API: {err}") from err
 
         _LOGGER.debug(
             "Address search for '%s' returned %d results", query, len(results)

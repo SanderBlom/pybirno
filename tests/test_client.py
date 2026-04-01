@@ -269,6 +269,20 @@ class TestGetPickups:
         with pytest.raises(BirConnectionError, match="Timeout"):
             await client.authenticate()
 
+    async def test_get_pickups_invalid_json(self, session: AsyncMock) -> None:
+        """Test get_pickups raises BirConnectionError on invalid JSON."""
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
+        mock_resp = _make_response()
+        mock_resp.__aenter__.return_value.status = 200
+        mock_resp.__aenter__.return_value.json = AsyncMock(
+            side_effect=ValueError("Invalid JSON")
+        )
+        session.get.return_value = mock_resp
+
+        client = BirClient("prop-id", session)
+        with pytest.raises(BirConnectionError, match="Invalid response"):
+            await client.get_pickups()
+
 
 class TestSearchAddresses:
     """Tests for BirClient.search_addresses."""
