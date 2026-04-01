@@ -11,7 +11,17 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class WastePickup:
-    """Represent a scheduled waste pickup."""
+    """Represent a scheduled waste pickup.
+
+    Attributes:
+        date: The scheduled pickup date.
+        waste_type: English key for the waste type (e.g. "mixed_waste").
+        waste_type_name: Original Norwegian name from the API (e.g. "Restavfall").
+        waste_type_id: Unique identifier for the waste type from the API.
+        frequency_type: Pickup frequency type code from the API.
+        frequency_interval: Number of intervals between pickups.
+
+    """
 
     date: date
     waste_type: str
@@ -23,7 +33,15 @@ class WastePickup:
 
 @dataclass(frozen=True)
 class Address:
-    """Represent a property address from the BIR API."""
+    """Represent a property address from the BIR API.
+
+    Attributes:
+        property_id: The BIR property GUID used to fetch pickups.
+        address: Formatted address string (e.g. "Testveien 1, Bergen").
+        municipality: Municipality name (e.g. "Bergen").
+        municipality_number: Official municipality number (e.g. "4601").
+
+    """
 
     property_id: str
     address: str
