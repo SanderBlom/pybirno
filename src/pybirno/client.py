@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from aiohttp import ClientError, ClientResponseError, ClientSession, ClientTimeout
@@ -95,7 +95,7 @@ class BirClient:
         """
         await self._ensure_authenticated()
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         params = {
             "eiendomId": self._property_id,
             "datoFra": now.strftime("%Y-%m-%d"),
