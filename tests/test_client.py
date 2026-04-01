@@ -376,6 +376,37 @@ class TestValidate:
         session.post.assert_called_once()
         session.get.assert_called_once()
 
+    async def test_validate_auth_failure(self, session: AsyncMock) -> None:
+        """Test validate raises BirAuthenticationError on auth failure."""
+        session.post.return_value = _make_response(status=400)
+
+        client = BirClient("prop-id", session)
+
+        with pytest.raises(BirAuthenticationError):
+            await client.validate()
+
+        session.get.assert_not_called()
+
+    async def test_validate_connection_failure(self, session: AsyncMock) -> None:
+        """Test validate raises BirConnectionError on connection failure."""
+        session.post.return_value = _make_response(headers={"Token": "valid-token"})
+        session.get.side_effect = ClientConnectionError("Connection refused")
+
+        client = BirClient("prop-id", session)
+
+        with pytest.raises(BirConnectionError):
+            await client.validate()
+
+    async def test_validate_pickup_fetch_failure(self, session: AsyncMock) -> None:
+        """Test validate raises BirAuthenticationError on 500 from pickups."""
+        session.post.return_value = _make_response(headers={"Token": "valid-token"})
+        session.get.return_value = _make_response(status=500)
+
+        client = BirClient("prop-id", session)
+
+        with pytest.raises(BirAuthenticationError):
+            await client.validate()
+
 
 class TestParsePickups:
     """Tests for BirClient._parse_pickups static method."""
