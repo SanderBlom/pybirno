@@ -140,9 +140,7 @@ class TestGetPickups:
         self, session: AsyncMock
     ) -> None:
         """Test get_pickups re-authenticates on expired token and retries."""
-        session.post.return_value = _make_response(
-            headers={"Token": "new-token"}
-        )
+        session.post.return_value = _make_response(headers={"Token": "new-token"})
         # First call returns 401, second call succeeds
         session.get.side_effect = [
             _make_response(status=401),
@@ -168,13 +166,16 @@ class TestGetPickups:
         assert session.post.call_count == 2
 
     async def test_get_pickups_server_error(self, session: AsyncMock) -> None:
-        """Test get_pickups raises BirResponseError on 500."""
+        """Test get_pickups raises BirResponseError on 500 without retrying."""
         session.post.return_value = _make_response(headers={"Token": "test-token"})
         session.get.return_value = _make_response(status=500)
 
         client = BirClient("prop-id", session)
         with pytest.raises(BirResponseError):
             await client.get_pickups()
+
+        # Should not have attempted re-authentication
+        assert session.post.call_count == 1
 
     async def test_get_pickups_auto_authenticates(self, session: AsyncMock) -> None:
         """Test get_pickups authenticates automatically if no token."""

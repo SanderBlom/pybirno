@@ -103,7 +103,7 @@ class BirClient:
             await self.authenticate()
             return await self._fetch_pickups(days_ahead)
 
-    async def _fetch_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
+    async def _fetch_pickups(self, days_ahead: int) -> list[WastePickup]:
         """Fetch pickups from the API without retry logic.
 
         Args:
