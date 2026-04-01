@@ -1,0 +1,48 @@
+Metadata-Version: 2.4
+Name: pybirno
+Version: 0.1.0
+Summary: Async Python client for the BIR waste collection API
+Author-email: Sander Blom <sander@example.com>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/SanderBlom/pybirno
+Project-URL: Repository, https://github.com/SanderBlom/pybirno
+Project-URL: Issues, https://github.com/SanderBlom/pybirno/issues
+Classifier: Development Status :: 4 - Beta
+Classifier: Framework :: AsyncIO
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Typing :: Typed
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: aiohttp>=3.0.0
+Dynamic: license-file
+
+# pybirno
+
+Async Python client for the BIR waste collection API (Bergen, Norway).
+
+## Installation
+
+```bash
+pip install pybirno
+```
+
+## Usage
+
+```python
+import asyncio
+from aiohttp import ClientSession
+from pybirno import BirClient
+
+async def main():
+    async with ClientSession() as session:
+        client = BirClient("property-id", session)
+        pickups = await client.get_pickups()
+        for pickup in pickups:
+            print(f"{pickup.waste_type}: {pickup.date}")
+
+asyncio.run(main())
+```
