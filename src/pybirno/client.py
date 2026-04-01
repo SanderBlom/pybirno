@@ -101,7 +101,6 @@ class BirClient:
         Raises:
             BirAuthenticationError: If authentication fails.
             BirConnectionError: If a connection error occurs.
-            BirResponseError: If the API returns unexpected data.
 
         """
         await self._ensure_authenticated()
@@ -125,7 +124,6 @@ class BirClient:
         Raises:
             BirAuthenticationError: If the token is invalid or expired.
             BirConnectionError: If a connection error occurs.
-            BirResponseError: If the API returns unexpected data.
 
         """
         now = datetime.now(tz=UTC)
