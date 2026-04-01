@@ -263,10 +263,10 @@ class BirClient:
         ]
 
     async def validate(self) -> bool:
-        """Validate that the client can authenticate and reach the API.
+        """Validate that the client can authenticate and fetch pickups.
 
         Returns:
-            True if the API is reachable and authentication succeeds.
+            True if authentication and a pickup fetch succeed.
 
         Raises:
             BirAuthenticationError: If authentication fails.
@@ -274,4 +274,5 @@ class BirClient:
 
         """
         await self.authenticate()
+        await self._fetch_pickups(days_ahead=1)
         return True

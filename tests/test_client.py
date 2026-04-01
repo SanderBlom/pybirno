@@ -345,11 +345,14 @@ class TestValidate:
     async def test_validate_success(self, session: AsyncMock) -> None:
         """Test validate returns True on success."""
         session.post.return_value = _make_response(headers={"Token": "valid-token"})
+        session.get.return_value = _make_response(json_data=[])
 
         client = BirClient("prop-id", session)
         result = await client.validate()
 
         assert result is True
+        session.post.assert_called_once()
+        session.get.assert_called_once()
 
 
 class TestParsePickups:
