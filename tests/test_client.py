@@ -6,7 +6,12 @@ from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from aiohttp import ClientResponseError, ClientSession, RequestInfo
+from aiohttp import (
+    ClientConnectionError,
+    ClientResponseError,
+    ClientSession,
+    RequestInfo,
+)
 from yarl import URL
 
 from pybirno import (
@@ -14,7 +19,6 @@ from pybirno import (
     BirAuthenticationError,
     BirClient,
     BirConnectionError,
-    BirResponseError,
     WastePickup,
 )
 
@@ -143,9 +147,10 @@ class TestGetPickups:
     ) -> None:
         """Test get_pickups re-authenticates on expired token and retries."""
         session.post.return_value = _make_response(headers={"Token": "new-token"})
-        # First call returns 401, second call succeeds
+        # First call returns 500 (BIR's response for expired token),
+        # second call succeeds after re-auth
         session.get.side_effect = [
-            _make_response(status=401),
+            _make_response(status=500),
             _make_response(
                 json_data=[
                     {
@@ -174,7 +179,8 @@ class TestGetPickups:
             _make_response(headers={"Token": "old-token"}),
             _make_response(status=401),
         ]
-        session.get.return_value = _make_response(status=401)
+        # API returns 500 (expired token)
+        session.get.return_value = _make_response(status=500)
 
         client = BirClient("prop-id", session)
         with pytest.raises(BirAuthenticationError):
@@ -182,17 +188,23 @@ class TestGetPickups:
 
         assert session.post.call_count == 2
 
-    async def test_get_pickups_server_error(self, session: AsyncMock) -> None:
-        """Test get_pickups raises BirResponseError on 500 without retrying."""
+    async def test_get_pickups_server_error_retries_once(
+        self, session: AsyncMock
+    ) -> None:
+        """Test 500 triggers one re-auth attempt.
+
+        BIR uses 500 for expired tokens.
+        """
         session.post.return_value = _make_response(headers={"Token": "test-token"})
+        # Both attempts return 500
         session.get.return_value = _make_response(status=500)
 
         client = BirClient("prop-id", session)
-        with pytest.raises(BirResponseError):
+        with pytest.raises(BirAuthenticationError):
             await client.get_pickups()
 
-        # Should not have attempted re-authentication
-        assert session.post.call_count == 1
+        # Initial auth + one re-auth attempt
+        assert session.post.call_count == 2
 
     async def test_get_pickups_auto_authenticates(self, session: AsyncMock) -> None:
         """Test get_pickups authenticates automatically if no token."""
@@ -230,6 +242,32 @@ class TestGetPickups:
         assert len(pickups) == 1
         assert pickups[0].waste_type == "paper_and_plastic"
         assert pickups[0].waste_type_name == "Papir"
+
+    async def test_get_pickups_connection_error(self, session: AsyncMock) -> None:
+        """Test get_pickups raises BirConnectionError on connection failure."""
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
+        session.get.side_effect = ClientConnectionError("Connection refused")
+
+        client = BirClient("prop-id", session)
+        with pytest.raises(BirConnectionError, match="Connection refused"):
+            await client.get_pickups()
+
+    async def test_get_pickups_timeout(self, session: AsyncMock) -> None:
+        """Test get_pickups raises BirConnectionError on timeout."""
+        session.post.return_value = _make_response(headers={"Token": "test-token"})
+        session.get.side_effect = TimeoutError("Request timed out")
+
+        client = BirClient("prop-id", session)
+        with pytest.raises(TimeoutError):
+            await client.get_pickups()
+
+    async def test_authenticate_timeout(self, session: AsyncMock) -> None:
+        """Test authenticate raises on timeout."""
+        session.post.side_effect = TimeoutError("Request timed out")
+
+        client = BirClient("prop-id", session)
+        with pytest.raises(TimeoutError):
+            await client.authenticate()
 
 
 class TestSearchAddresses:

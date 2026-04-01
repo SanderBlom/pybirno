@@ -20,7 +20,6 @@ from .exceptions import (
     BirAuthenticationError,
     BirConnectionError,
     BirError,
-    BirResponseError,
 )
 from .models import Address, WastePickup
 
@@ -134,16 +133,16 @@ class BirClient:
             ) as response:
                 if response.status in (401, 403):
                     raise BirAuthenticationError("Token expired or invalid")
+                server_error_status = 500
+                if response.status == server_error_status:
+                    # The BIR API returns 500 for expired/invalid tokens
+                    # rather than a proper 401/403.
+                    raise BirAuthenticationError("Server error (likely expired token)")
                 response.raise_for_status()
                 data: list[dict[str, Any]] = await response.json()
         except BirError:
             raise
         except ClientResponseError as err:
-            server_error = 500
-            if err.status == server_error:
-                raise BirResponseError(
-                    f"Server error fetching pickups for property {self._property_id}"
-                ) from err
             raise BirConnectionError(f"Error fetching pickups: {err}") from err
         except ClientError as err:
             raise BirConnectionError(

@@ -1,0 +1,26 @@
+name: Integration Tests
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+env:
+  DEFAULT_PYTHON: "3.13"
+
+jobs:
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pytest-asyncio
+      - name: Run integration tests
+        run: pytest tests/test_integration.py -m integration -v --timeout=60
