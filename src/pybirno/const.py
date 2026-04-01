@@ -16,6 +16,11 @@ API_PROVIDER_ID: Final = "100;300;400"
 
 API_TIMEOUT: Final = 30
 
+# Some waste types (e.g. glass and metal packaging) are only collected
+# every 3 months, so we need to look ahead at least 95 days to ensure
+# all upcoming pickups are included.
+DEFAULT_DAYS_AHEAD: Final = 95
+
 # HTTP status codes for authentication-related errors.
 HTTP_UNAUTHORIZED: Final = 401
 HTTP_FORBIDDEN: Final = 403

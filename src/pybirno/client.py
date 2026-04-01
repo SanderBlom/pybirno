@@ -15,6 +15,7 @@ from .const import (
     API_PICKUPS_URL,
     API_PROVIDER_ID,
     API_TIMEOUT,
+    DEFAULT_DAYS_AHEAD,
     HTTP_FORBIDDEN,
     HTTP_SERVER_ERROR,
     HTTP_UNAUTHORIZED,
@@ -90,7 +91,9 @@ class BirClient:
             _LOGGER.debug("Timeout during authentication")
             raise BirConnectionError("Timeout during authentication") from err
 
-    async def get_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
+    async def get_pickups(
+        self, days_ahead: int = DEFAULT_DAYS_AHEAD
+    ) -> list[WastePickup]:
         """Fetch upcoming waste pickups for the property.
 
         Automatically re-authenticates once if the API rejects the token.
