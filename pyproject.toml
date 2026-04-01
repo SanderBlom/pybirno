@@ -39,7 +39,27 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D203", "D213", "COM812", "ISC001"]
+ignore = [
+    "D203",    # one-blank-line-before-class (conflicts with D211)
+    "D213",    # multi-line-summary-second-line (conflicts with D212)
+    "COM812",  # missing-trailing-comma (conflicts with formatter)
+    "ISC001",  # single-line-implicit-string-concatenation (conflicts with formatter)
+    "EM101",   # raw-string-in-exception
+    "EM102",   # f-string-in-exception
+    "TRY003",  # raise-vanilla-args
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert usage is fine in tests
+    "S105",    # hardcoded passwords are test fixtures
+    "D100",    # missing docstring in public module
+    "D103",    # missing docstring in public function
+    "D104",    # missing docstring in public package
+    "ANN",     # type annotations not required in tests
+    "SLF001",  # private member access is fine in tests
+    "PLR2004", # magic values are fine in tests
+]
 
 [tool.mypy]
 python_version = "3.12"
@@ -49,3 +69,14 @@ warn_unused_configs = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = []
+
+[tool.coverage.run]
+source = ["pybirno"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true

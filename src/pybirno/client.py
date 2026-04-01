@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from aiohttp import ClientError, ClientResponseError, ClientSession, ClientTimeout
@@ -95,13 +95,13 @@ class BirClient:
         """
         await self._ensure_authenticated()
 
-        now = datetime.now()
+        now = datetime.now(tz=timezone.utc)
         params = {
             "eiendomId": self._property_id,
             "datoFra": now.strftime("%Y-%m-%d"),
             "datoTil": (now + timedelta(days=days_ahead)).strftime("%Y-%m-%d"),
         }
-        headers = {"Token": self._token}
+        headers: dict[str, str] = {"Token": self._token or ""}
 
         timeout = ClientTimeout(total=API_TIMEOUT)
         try:
@@ -115,7 +115,8 @@ class BirClient:
         except BirError:
             raise
         except ClientResponseError as err:
-            if err.status == 500:
+            server_error = 500
+            if err.status == server_error:
                 raise BirResponseError(
                     f"Server error fetching pickups for property {self._property_id}"
                 ) from err
@@ -148,9 +149,8 @@ class BirClient:
         pickups: list[WastePickup] = []
         for item in data:
             try:
-                pickup_date = datetime.strptime(
-                    item["dato"], "%Y-%m-%dT%H:%M:%S"
-                ).date()
+                dato = item["dato"].split("T")[0]
+                pickup_date = date.fromisoformat(dato)
                 pickups.append(
                     WastePickup(
                         date=pickup_date,
