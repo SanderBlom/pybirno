@@ -1,5 +1,10 @@
 # pybirno
 
+[![CI](https://github.com/SanderBlom/pybirno/actions/workflows/ci.yml/badge.svg)](https://github.com/SanderBlom/pybirno/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/pybirno)](https://pypi.org/project/pybirno/)
+[![Python](https://img.shields.io/pypi/pyversions/pybirno)](https://pypi.org/project/pybirno/)
+[![License](https://img.shields.io/github/license/SanderBlom/pybirno)](https://github.com/SanderBlom/pybirno/blob/main/LICENSE)
+
 Async Python client for the BIR waste collection API (Bergen, Norway).
 
 ## Installation
