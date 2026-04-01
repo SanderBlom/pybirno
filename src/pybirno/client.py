@@ -15,6 +15,7 @@ from .const import (
     API_PICKUPS_URL,
     API_PROVIDER_ID,
     API_TIMEOUT,
+    HTTP_SERVER_ERROR,
     WASTE_TYPE_MAP,
 )
 from .exceptions import (
@@ -141,13 +142,16 @@ class BirClient:
             ) as response:
                 if response.status in (401, 403):
                     raise BirAuthenticationError("Token expired or invalid")
-                server_error_status = 500
-                if response.status == server_error_status:
+                if response.status == HTTP_SERVER_ERROR:
                     # The BIR API returns 500 for expired/invalid tokens
                     # rather than a proper 401/403.
                     raise BirAuthenticationError("Server error (likely expired token)")
                 response.raise_for_status()
-                data: list[dict[str, Any]] = await response.json()
+                data = await response.json()
+                if not isinstance(data, list):
+                    raise BirConnectionError(
+                        f"Expected list from API, got {type(data).__name__}"
+                    )
         except BirError:
             raise
         except ClientResponseError as err:
@@ -237,7 +241,11 @@ class BirClient:
                 API_ADDRESS_SEARCH_URL, params=params, timeout=timeout
             ) as response:
                 response.raise_for_status()
-                results: list[dict[str, Any]] = await response.json()
+                results = await response.json()
+                if not isinstance(results, list):
+                    raise BirConnectionError(
+                        f"Expected list from API, got {type(results).__name__}"
+                    )
         except ClientError as err:
             _LOGGER.debug("Error searching addresses: %s", err)
             raise BirConnectionError(f"Error searching addresses: {err}") from err

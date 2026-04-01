@@ -338,6 +338,13 @@ class TestSearchAddresses:
         with pytest.raises(BirConnectionError):
             await BirClient.search_addresses(session, "Test")
 
+    async def test_search_timeout(self, session: AsyncMock) -> None:
+        """Test search raises BirConnectionError on timeout."""
+        session.get.side_effect = TimeoutError("Request timed out")
+
+        with pytest.raises(BirConnectionError, match="Timeout"):
+            await BirClient.search_addresses(session, "Test")
+
 
 class TestValidate:
     """Tests for BirClient.validate."""
