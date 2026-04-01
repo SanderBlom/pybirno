@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -22,6 +23,8 @@ from .exceptions import (
     BirError,
 )
 from .models import Address, WastePickup
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class BirClient:
@@ -69,11 +72,14 @@ class BirClient:
                         "Authentication failed: no token in response"
                     )
                 self._token = token
+                _LOGGER.debug("Authentication successful")
         except ClientResponseError as err:
+            _LOGGER.debug("Authentication failed with status %s", err.status)
             raise BirAuthenticationError(
                 f"Authentication failed: {err.status}"
             ) from err
         except ClientError as err:
+            _LOGGER.debug("Connection error during authentication: %s", err)
             raise BirConnectionError(
                 f"Connection error during authentication: {err}"
             ) from err
@@ -99,6 +105,7 @@ class BirClient:
         try:
             return await self._fetch_pickups(days_ahead)
         except BirAuthenticationError:
+            _LOGGER.debug("Token expired, re-authenticating")
             self._token = None
             await self.authenticate()
             return await self._fetch_pickups(days_ahead)
@@ -143,8 +150,10 @@ class BirClient:
         except BirError:
             raise
         except ClientResponseError as err:
+            _LOGGER.debug("Error fetching pickups: %s", err)
             raise BirConnectionError(f"Error fetching pickups: {err}") from err
         except ClientError as err:
+            _LOGGER.debug("Connection error fetching pickups: %s", err)
             raise BirConnectionError(
                 f"Connection error fetching pickups: {err}"
             ) from err
@@ -154,6 +163,7 @@ class BirClient:
     async def _ensure_authenticated(self) -> None:
         """Ensure we have a valid authentication token."""
         if self._token is None:
+            _LOGGER.debug("No token present, authenticating")
             await self.authenticate()
 
     @staticmethod
@@ -175,6 +185,7 @@ class BirClient:
                 waste_type_name = item.get("fraksjon", "")
                 waste_type = WASTE_TYPE_MAP.get(waste_type_name)
                 if waste_type is None:
+                    _LOGGER.debug("Skipping unknown waste type: %s", waste_type_name)
                     continue
                 pickups.append(
                     WastePickup(
@@ -187,8 +198,10 @@ class BirClient:
                     )
                 )
             except (KeyError, ValueError):
+                _LOGGER.debug("Skipping malformed pickup entry: %s", item)
                 continue
 
+        _LOGGER.debug("Parsed %d pickups", len(pickups))
         return sorted(pickups, key=lambda p: p.date)
 
     @staticmethod
@@ -219,8 +232,12 @@ class BirClient:
                 response.raise_for_status()
                 results: list[dict[str, Any]] = await response.json()
         except ClientError as err:
+            _LOGGER.debug("Error searching addresses: %s", err)
             raise BirConnectionError(f"Error searching addresses: {err}") from err
 
+        _LOGGER.debug(
+            "Address search for '%s' returned %d results", query, len(results)
+        )
         return [
             Address(
                 property_id=item["Id"],
