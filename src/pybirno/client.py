@@ -195,6 +195,9 @@ class BirClient:
         """
         pickups: list[WastePickup] = []
         for item in data:
+            if not isinstance(item, dict):
+                _LOGGER.debug("Skipping non-dict pickup entry: %s", item)
+                continue
             try:
                 dato = item["dato"].split("T")[0]
                 pickup_date = date.fromisoformat(dato)
@@ -272,7 +275,7 @@ class BirClient:
                 municipality_number=item.get("MunicipalityNumber", ""),
             )
             for item in results
-            if item.get("Id")
+            if isinstance(item, dict) and item.get("Id")
         ]
 
     async def validate(self) -> bool:
