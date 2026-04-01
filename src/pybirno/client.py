@@ -151,10 +151,13 @@ class BirClient:
                 dato = item["dato"].split("T")[0]
                 pickup_date = date.fromisoformat(dato)
                 waste_type_name = item.get("fraksjon", "")
+                waste_type = WASTE_TYPE_MAP.get(waste_type_name)
+                if waste_type is None:
+                    continue
                 pickups.append(
                     WastePickup(
                         date=pickup_date,
-                        waste_type=WASTE_TYPE_MAP.get(waste_type_name, waste_type_name),
+                        waste_type=waste_type,
                         waste_type_name=waste_type_name,
                         waste_type_id=item.get("fraksjonId", ""),
                         frequency_type=item.get("frekvensType", 0),
