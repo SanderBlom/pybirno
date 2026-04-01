@@ -33,3 +33,11 @@ asyncio.run(main())
 ## API Documentation
 
 - API spec: https://webservice.bir.no/swagger/docs/v1
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
