@@ -331,6 +331,21 @@ class TestSearchAddresses:
 
         assert len(results) == 1
 
+    async def test_search_skips_non_dict_items(self, session: AsyncMock) -> None:
+        """Test that non-dict items in search results are skipped."""
+        session.get.return_value = _make_response(
+            json_data=[
+                "unexpected string",
+                {"Id": "abc-123", "Title": "Valid", "SubTitle": "Bergen"},
+                None,
+            ]
+        )
+
+        results = await BirClient.search_addresses(session, "Test")
+
+        assert len(results) == 1
+        assert results[0].property_id == "abc-123"
+
     async def test_search_connection_error(self, session: AsyncMock) -> None:
         """Test search raises BirConnectionError on failure."""
         session.get.return_value = _make_response(status=500)
@@ -431,3 +446,21 @@ class TestParsePickups:
         )
         with pytest.raises(AttributeError):
             pickup.date = date(2026, 5, 1)  # type: ignore[misc]
+
+    def test_non_dict_items_skipped(self) -> None:
+        """Test that non-dict items in pickup data are skipped."""
+        data = [
+            "unexpected string",
+            42,
+            {
+                "dato": "2026-04-15T00:00:00",
+                "fraksjon": "Restavfall",
+                "fraksjonId": "1",
+                "frekvensType": 2,
+                "frekvensIntervall": 2,
+            },
+            None,
+        ]
+        result = BirClient._parse_pickups(data)
+        assert len(result) == 1
+        assert result[0].waste_type == "mixed_waste"
