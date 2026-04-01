@@ -242,6 +242,7 @@ class TestGetPickups:
         assert len(pickups) == 1
         assert pickups[0].waste_type == "paper_and_plastic"
         assert pickups[0].waste_type_name == "Papir"
+<<<<<<< feature/auto-reauth
 
     async def test_get_pickups_connection_error(self, session: AsyncMock) -> None:
         """Test get_pickups raises BirConnectionError on connection failure."""
@@ -268,6 +269,8 @@ class TestGetPickups:
         client = BirClient("prop-id", session)
         with pytest.raises(TimeoutError):
             await client.authenticate()
+=======
+>>>>>>> main
 
 
 class TestSearchAddresses:
