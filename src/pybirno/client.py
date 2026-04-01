@@ -83,6 +83,9 @@ class BirClient:
             raise BirConnectionError(
                 f"Connection error during authentication: {err}"
             ) from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout during authentication")
+            raise BirConnectionError("Timeout during authentication") from err
 
     async def get_pickups(self, days_ahead: int = 95) -> list[WastePickup]:
         """Fetch upcoming waste pickups for the property.
@@ -157,6 +160,9 @@ class BirClient:
             raise BirConnectionError(
                 f"Connection error fetching pickups: {err}"
             ) from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout fetching pickups")
+            raise BirConnectionError("Timeout fetching pickups") from err
 
         return self._parse_pickups(data)
 
@@ -234,6 +240,9 @@ class BirClient:
         except ClientError as err:
             _LOGGER.debug("Error searching addresses: %s", err)
             raise BirConnectionError(f"Error searching addresses: {err}") from err
+        except TimeoutError as err:
+            _LOGGER.debug("Timeout searching addresses")
+            raise BirConnectionError("Timeout searching addresses") from err
 
         _LOGGER.debug(
             "Address search for '%s' returned %d results", query, len(results)
